@@ -2,6 +2,7 @@
 
 import { type PutBlobResult } from "@vercel/blob";
 import { upload } from "@vercel/blob/client";
+import { del } from "@vercel/blob";
 import { useState, useRef } from "react";
 
 export default function AvatarUploadPage() {
