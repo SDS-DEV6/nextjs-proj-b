@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import ShowArtist from "@/components/showArtist";
 
 function MyComponent() {
   const { data: session, status } = useSession();
@@ -42,12 +43,9 @@ function MyComponent() {
     return <div>You need to be logged in.</div>;
   }
 
-  return (
-    <div>
-      {/* Render your data as needed */}
-      <pre>{JSON.stringify(data, null, 2)}</pre>
-    </div>
-  );
+  const artistDb = data;
+
+  return <div>{artistDb && <ShowArtist artists={artistDb} />}</div>;
 }
 
 export default MyComponent;

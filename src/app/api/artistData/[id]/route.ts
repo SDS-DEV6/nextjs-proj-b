@@ -39,8 +39,8 @@ export const PATCH = async (
     const {
       firstName,
       lastName,
-      username,
-      email,
+      suffix,
+      aboutMe,
       password,
       profileUrl,
       profileKeyUrl,
@@ -48,52 +48,29 @@ export const PATCH = async (
 
     const { id } = params;
 
-    const updateartist = await prisma.artist.update({
+    const updateArtist = await prisma.artist.update({
       where: {
         ArtistId: id,
       },
       data: {
         firstName,
         lastName,
-        username,
-        email,
+        suffix,
+        aboutMe,
         password,
         profileUrl,
         profileKeyUrl,
       },
     });
 
-    if (!updateartist) {
-      return NextResponse.json(updateartist);
+    if (!updateArtist) {
+      return NextResponse.json(updateArtist);
     }
 
-    return NextResponse.json(updateartist);
+    return NextResponse.json(updateArtist);
   } catch (err) {
     return NextResponse.json(
       { message: "Error Posting Data to Database", err },
-      { status: 500 }
-    );
-  }
-};
-
-export const DELETE = async (
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) => {
-  try {
-    const { id } = params;
-
-    // delete
-    await prisma.artist.delete({
-      where: {
-        ArtistId: id,
-      },
-    });
-
-    return NextResponse.json("artist Data Marked as Deleted");
-  } catch (err) {
-    return NextResponse.json(
-      { message: "Error Deleting Data", err },
       { status: 500 }
     );
   }
