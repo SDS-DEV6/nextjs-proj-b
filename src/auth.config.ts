@@ -24,7 +24,7 @@ export const authConfig = {
       return true;
     },
     session: ({ session, token }) => {
-      console.log("Session callback", { session, token });
+      //console.log("Session callback", { session, token });
       return {
         ...session,
         user: {

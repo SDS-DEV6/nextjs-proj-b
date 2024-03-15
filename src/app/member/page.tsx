@@ -4,8 +4,9 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import ShowArtist from "@/components/showArtist";
+import { logout } from "@/actions/auth";
 
-function MyComponent() {
+function Main() {
   const { data: session, status } = useSession();
   const [data, setData] = useState(null);
 
@@ -45,10 +46,22 @@ function MyComponent() {
 
   const artistDb = data;
 
-  return <div>{artistDb && <ShowArtist artists={artistDb} />}</div>;
+  return (
+    <>
+      {artistDb && <ShowArtist artists={artistDb} />}
+
+      <div>
+        <form action={logout}>
+          <button className="flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3 disabled:bg-slate-50 disabled:text-slate-500">
+            Sign Out
+          </button>
+        </form>
+      </div>
+    </>
+  );
 }
 
-export default MyComponent;
+export default Main;
 
 /* for reference use
 import { useSession } from "next-auth/react";
@@ -58,6 +71,7 @@ export default function Dashboard() {
   const { data: session, status } = useSession();
 
   return (
+    
     <div className="flex flex-col">
       <div className="mb-4">
         <p>Member Area</p>
