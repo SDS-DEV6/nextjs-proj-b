@@ -15,6 +15,7 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
   const [blob, setBlob] = useState<PutBlobResult | null>(null);
   const [previewUrl, setPreviewUrl] = useState(""); // State for the image preview
   const [newPhoto, setNewPhoto] = useState(false); //vercelblolb check for if new image is chosen
+  const [message, setMessage] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -108,6 +109,29 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
       [name]: value,
     }));
   };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post("/api/reset/member", {
+        email: updateArtistModal.email,
+      });
+      // Use the response data to set a success message
+      setMessage(
+        response.data.message || "Password reset link sent successfully."
+      );
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setMessage(
+          error?.response?.data?.message ||
+            "An error occurred. Please try again."
+        );
+      } else {
+        setMessage("An unexpected error occurred. Please try again.");
+      }
+    }
+  };
+
   return (
     <div>
       <button onClick={() => setOpenArtistModalOpen(true)}>
@@ -144,14 +168,12 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
             type="file"
             onChange={handleFileChange}
           />
-
           <input
             readOnly
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             name="profileUrl"
             value={updateArtistModal.profileUrl || ""}
           />
-
           <label className="block text-gray-700 text-sm font-bold mb-2">
             First Name:
           </label>
@@ -163,7 +185,6 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
             onChange={handleChange}
             required
           />
-
           <label className="block text-gray-700 text-sm font-bold mb-2">
             Last Name:
           </label>
@@ -175,7 +196,6 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
             onChange={handleChange}
             required
           />
-
           <label className="block text-gray-700 text-sm font-bold mb-2">
             Suffix:
           </label>
@@ -186,7 +206,6 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
             value={updateArtistModal.suffix || ""}
             onChange={handleChange}
           />
-
           <label className="block text-gray-700 text-sm font-bold mb-2">
             About:
           </label>
@@ -197,19 +216,18 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
             value={updateArtistModal.aboutMe || ""}
             onChange={handleChange}
           />
-
           <label className="block text-gray-700 text-sm font-bold mb-2">
-            Update Password: (Feature Currently Unavailable)
+            Request Password Change:
           </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            type="text"
-            name="password"
-            value={updateArtistModal.password || ""}
-            onChange={handleChange}
-            readOnly
-          />
-
+          <button
+            type="button"
+            onClick={handleResetPassword}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            Sent Request
+          </button>
+          {message && <p className="text-black">{message}</p>}
+          <br /> <br />
           <button
             type="submit"
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"

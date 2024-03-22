@@ -9,20 +9,18 @@ import bcryptjs from "bcryptjs";
 import { randomBytes } from "crypto";
 import { redirect } from "next/navigation";
 import { EmailNotVerifiedError } from "@/errors";
+import { UserNotVerifiedError } from "@/errors";
 
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.mailgun.org",
-  port: "587",
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
   auth: {
-    user: "postmaster@pinya.io",
-    pass: "f6debfe1e8f803bb6787a69a1063b5b8-2c441066-3134a4d0",
+    user: process.env.EMAIL,
+    pass: process.env.PASSWORD,
     api_key: process.env.MAILGUN_API_KEY,
     domain: process.env.MAILGUN_DOMAIN,
-  },
-  tls: {
-    rejectUnauthorized: false,
   },
 });
 
@@ -31,7 +29,10 @@ export async function authenticate(
   formData: FormData
 ) {
   try {
-    await isUsersEmailVerified(formData.get("email") as string);
+    await isUserEmailVerifiedAndStatusVerified(
+      formData.get("email") as string,
+      true
+    );
     await signIn("credentials", formData);
   } catch (error) {
     if (error instanceof AuthError) {
@@ -43,7 +44,10 @@ export async function authenticate(
       }
     }
 
-    if (error instanceof EmailNotVerifiedError) {
+    if (
+      error instanceof EmailNotVerifiedError ||
+      error instanceof UserNotVerifiedError
+    ) {
       return error?.message;
     }
 
@@ -92,6 +96,16 @@ export async function signUp(
     };
   }
 
+  const isUsernameExists = await findUserByUsername(result.data.name);
+
+  if (isUsernameExists) {
+    return {
+      errors: {
+        name: ["Username already exists"],
+      },
+    };
+  }
+
   const hashed = await generatePasswordHash(result.data.password);
 
   const verificationToken = generateEmailVerificationToken();
@@ -124,7 +138,9 @@ export async function signUp(
 
   await sendVerificationEmail(result.data.email, verificationToken);
 
-  redirect(`/email/verify/send?email=${result.data.email}&verification_sent=1`);
+  redirect(
+    `/helpers/verifyEmail/verify/send?email=${result.data.email}&verification_sent=1`
+  );
 }
 
 export async function logout() {
@@ -135,6 +151,14 @@ export const findUserByEmail = async (email: string) => {
   return await db.artist.findFirst({
     where: {
       email,
+    },
+  });
+};
+
+export const findUserByUsername = async (username: string) => {
+  return await db.artist.findFirst({
+    where: {
+      username,
     },
   });
 };
@@ -152,12 +176,12 @@ const sendVerificationEmail = async (email: string, token: string) => {
   const emailData = {
     from: "noreply-verification@pinyastudio.com",
     to: email,
-    subject: "Pinya.io: Admin Email Verification",
+    subject: "Pinya.io: Artist Email Verification",
     html: `
-        <p>Hi there, you've been invited as an Admin for Pinya.io inorder to get
-        started please confirm your email by clicking on the link below.</p>
+        <p>Hi there, you've recently signed up as an artist for Pinya.io inorder to get 
+        started with your application please confirm your email by clicking on the link below.</p>
         <br>
-        <a href="http://localhost:3000/email/verify?email=${email}&token=${token}">Verify Email</a>
+        <a href="http://localhost:3000/helpers/verifyEmail/verify?email=${email}&token=${token}">Verify Email</a>
         <br>
         If this was a mistake, please ignore this email.
         </p>
@@ -199,15 +223,23 @@ export const verifyEmail = (email: string) => {
   });
 };
 
-export const isUsersEmailVerified = async (email: string) => {
+export const isUserEmailVerifiedAndStatusVerified = async (
+  email: string,
+  verifiedStatus: boolean
+) => {
   const user = await db.artist.findFirst({
     where: { email },
   });
 
   if (!user) return true;
 
-  if (!user?.emailVerifiedAt)
+  if (!user?.emailVerifiedAt) {
     throw new EmailNotVerifiedError(`EMAIL_NOT_VERIFIED:${email}`);
+  }
+
+  if (!user?.verifiedStatus) {
+    throw new UserNotVerifiedError(`APPLICATION_NOT_APPROVED`);
+  }
 
   return true;
 };

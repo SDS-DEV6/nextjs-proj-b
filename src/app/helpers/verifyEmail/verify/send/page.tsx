@@ -2,7 +2,7 @@ import Form from "@/components/email/verify/send/form";
 import { Suspense } from "react";
 
 import Image from "next/image";
-import PikuImage from "../../../../assets/piku-ad.png";
+import PikuImage from "@/assets/piku-ad.png";
 
 export default function Send() {
   return (

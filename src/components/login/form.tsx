@@ -13,7 +13,13 @@ export default function Form() {
   const [formState, action] = useFormState(authenticate, undefined);
 
   if (formState?.startsWith("EMAIL_NOT_VERIFIED")) {
-    redirect(`/email/verify/send?email=${formState.split(":")[1]}`);
+    redirect(
+      `/helpers/verifyEmail/verify/send?email=${formState.split(":")[1]}`
+    );
+  }
+
+  if (formState?.startsWith("APPLICATION_NOT_APPROVED")) {
+    redirect("/helpers/application");
   }
 
   return (
@@ -74,20 +80,15 @@ export default function Form() {
                   </div>
 
                   <LoginButton />
-                  <div className="mt-4 text-center">
-                    Don&apos;t have an account?&nbsp;
-                    <Link className="underline" href="/signup">
-                      Sign Up
-                    </Link>
-                  </div>
+                  <div className="mt-4 text-center"></div>
 
                   <div className="flex flex-row  items-center justify-center gap-2 font-inter text-sm font-medium">
                     <div className="font-inter font-normal">
                       Forgot Password?
                     </div>
-                    <a className="text-blackberry-300 hover:opacity-50 font-inter text-sm font-medium">
-                      Reset
-                    </a>
+                    <Link className="underline" href="/helpers/resetPassword">
+                      Reset Password
+                    </Link>
                   </div>
                 </form>
               </div>

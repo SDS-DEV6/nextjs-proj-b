@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import Image from "next/image";
-import PikuImage from "../../../assets/piku-ad.png";
+import PikuImage from "@/assets/piku-ad.png";
 
 export default function VerifyEmail() {
   const searchParams = useSearchParams();
@@ -36,7 +36,9 @@ export default function VerifyEmail() {
         // Update user verification status in database
         await verifyEmail(user.email);
 
-        setResult("Email verified successfully. Please proceed to login page.");
+        setResult(
+          "Thanks for verifying your email. We're reviewing your application and will be in touch soon. Please check your email for updates."
+        );
         setIsLoading(false);
       } catch (error) {
         console.error("Error verifying email:", error);
@@ -62,8 +64,8 @@ export default function VerifyEmail() {
                   </div>
                 </div>
                 <div className="flex flex-col items-center justify-center">
-                  <Link href="/login" className="bg-white py-3 px-2 rounded">
-                    Back to Login
+                  <Link href="/" className="bg-white py-3 px-2 rounded">
+                    Back
                   </Link>
                 </div>
               </div>

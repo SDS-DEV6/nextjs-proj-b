@@ -20,6 +20,25 @@ export const POST = async (request: { json: () => any }) => {
     const novelData = await request.json();
     const { genre, title, synopsis, artistId, thumbnailUrl } = novelData;
 
+    // Check if artistId is provided
+    if (!artistId) {
+      return NextResponse.json(
+        { message: "artistId is required" },
+        { status: 400 }
+      );
+    }
+
+    // Check if artistId exists in the artist table
+    const artist = await prisma.artist.findUnique({
+      where: { artistId: artistId },
+    });
+    if (!artist) {
+      return NextResponse.json(
+        { message: "artistId does not exist" },
+        { status: 400 }
+      );
+    }
+
     // Step 1: Create the novel first.
     const newNovel = await prisma.novel.create({
       data: {

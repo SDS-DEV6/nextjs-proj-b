@@ -10,6 +10,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum BooleanStatus {
+  Rejected
+  Approved
+  Pending
+}
+
 model Admin {
   adminId          String    @id @default(auto()) @map("_id") @db.ObjectId
   username         String    @unique
@@ -21,43 +27,47 @@ model Admin {
 }
 
 model Artist {
-  artistId         String    @id @default(auto()) @map("_id") @db.ObjectId
-  profileUrl       String?
-  username         String    @unique
-  aboutMe          String?
-  email            String    @unique
-  emailVerifiedAt  DateTime?
-  emailVerifyToken String?
-  password         String
-  firstName        String?
-  lastName         String?
-  suffix           String?
-  novels           Novel[]   @relation("ArtistToNovel")
-  verifiedStatus   Boolean   @default(false)
-  totalNovelLikes  Int       @default(0) // Track cumulative likes
-  totalNovelViews  Int       @default(0) // Track cumulative views
-  registration     DateTime  @default(now())
-  lastLogin        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  role             String    @default("artist")
+  artistId             String    @id @default(auto()) @map("_id") @db.ObjectId
+  profileUrl           String?
+  username             String    @unique
+  aboutMe              String?
+  email                String    @unique
+  emailVerifiedAt      DateTime?
+  emailVerifyToken     String?
+  password             String
+  firstName            String?
+  lastName             String?
+  suffix               String?
+  novels               Novel[]   @relation("ArtistToNovel")
+  verifiedStatus       Boolean   @default(false)
+  totalNovelLikes      Int       @default(0) // Track cumulative likes
+  totalNovelViews      Int       @default(0) // Track cumulative views
+  registration         DateTime  @default(now())
+  lastLogin            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  role                 String    @default("artist")
+  blocked              Boolean   @default(false)
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
 }
 
 model Novel {
-  novelId       String     @id @default(auto()) @map("_id") @db.ObjectId
-  artistId      String     @db.ObjectId
-  volumes       Volume[]   @relation("NovelToVolumes")
+  novelId       String        @id @default(auto()) @map("_id") @db.ObjectId
+  artistId      String        @db.ObjectId
+  volumes       Volume[]      @relation("NovelToVolumes")
   title         String
   synopsis      String
-  visibility    Boolean    @default(true)
-  pinyaApproved Boolean    @default(false)
-  totalViews    Int        @default(0)
-  totalLikes    Int        @default(0)
-  likes         Like[]     @relation("NovelToLikes")
-  Artist        Artist     @relation("ArtistToNovel", fields: [artistId], references: [artistId])
+  visibility    Boolean       @default(true)
+  pinyaApproved BooleanStatus @default(Pending)
+  totalViews    Int           @default(0)
+  totalLikes    Int           @default(0)
+  likes         Like[]        @relation("NovelToLikes")
+  Artist        Artist        @relation("ArtistToNovel", fields: [artistId], references: [artistId])
   thumbnailUrl  String
-  bookmarkedBy  Bookmark[] @relation("NovelToBookmarks")
+  bookmarkedBy  Bookmark[]    @relation("NovelToBookmarks")
   genre         String
-  createdAt     DateTime   @default(now())
+  createdAt     DateTime      @default(now())
+  rejected      Boolean       @default(false)
 }
 
 model Volume {
@@ -70,6 +80,7 @@ model Volume {
   createdAt       DateTime  @default(now())
   visibility      Boolean   @default(true)
   volumeNumber    Int       @default(1)
+  rejected        Boolean   @default(false)
 }
 
 model Chapter {
@@ -82,6 +93,7 @@ model Chapter {
   createdAt     DateTime @default(now())
   visibility    Boolean  @default(true)
   chapterNumber Int      @default(1)
+  rejected      Boolean  @default(false)
 }
 
 //reader
