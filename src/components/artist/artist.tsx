@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import UserData from "./userData";
+import DataModal from "../dataModal";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import bcryptjs from "bcryptjs";
-import { set } from "zod";
 import { type PutBlobResult } from "@vercel/blob";
 import { upload } from "@vercel/blob/client";
 import { useRef } from "react";
@@ -37,41 +36,52 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
   const [openArtistModal, setOpenArtistModalOpen] = useState(false);
   const [updateArtistModal, setUpdateArtistModalOpen] = useState(artistDb);
 
-  const generatePasswordHash = async (password: string) => {
-    const salt = await bcryptjs.genSalt(10);
-    return bcryptjs.hash(password, salt);
-  };
-
   const handleUpdateArtist = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Assuming newPhoto is a state indicating if a new photo has been selected
     if (
       newPhoto &&
-      updateArtistModal.profileUrl &&
       inputFileRef.current &&
       inputFileRef.current.files &&
       inputFileRef.current.files[0]
     ) {
       try {
-        await axios.delete(
-          `/api/delete?url=${encodeURIComponent(updateArtistModal.profileUrl)}`
-        );
+        // Assuming updateArtistModal.profileUrl holds the old profile URL
+        if (updateArtistModal.profileUrl) {
+          await axios.delete(
+            `/api/delete?url=${encodeURIComponent(
+              updateArtistModal.profileUrl
+            )}`
+          );
+        }
+
         const file = inputFileRef.current.files[0];
+
+        // Use the correct upload function as demonstrated in the working test file
         const newBlob = await upload(file.name, file, {
           access: "public",
-          handleUploadUrl: "/api/upload",
+          handleUploadUrl: "/api/blobUpload",
         });
 
-        updateArtistModal.profileUrl = newBlob.url;
-        setNewPhoto(false);
+        // Check if newBlob is not null and has a URL
+        if (newBlob && newBlob.url) {
+          // Update the updateArtistModal object with the new profile URL
+          updateArtistModal.profileUrl = newBlob.url;
+          setBlob(newBlob);
+          setNewPhoto(false);
+        } else {
+          throw new Error("Upload failed, newBlob is null or missing URL.");
+        }
       } catch (err) {
         console.log("Error during photo update:", err);
-        // Handle error (deletion or upload failure), possibly set an error state to inform the user
-        return; // Exit the function if deletion or upload fails
+        return;
       }
     }
+
+    // Now we can do the PATCH with the updated profileUrl
     axios
-      .patch(`api/artistData/${artistDb.ArtistId}`, updateArtistModal)
+      .patch(`api/artistData/${artistDb.artistId}`, updateArtistModal)
       .then((res) => {
         console.log(res);
       })
@@ -104,7 +114,7 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
         Update Profile
       </button>
 
-      <UserData
+      <DataModal
         modalOpen={openArtistModal}
         setModalOpen={setOpenArtistModalOpen}
       >
@@ -133,18 +143,13 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
             ref={inputFileRef}
             type="file"
             onChange={handleFileChange}
-            required
           />
 
           <input
-            type="hidden"
+            readOnly
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             name="profileUrl"
             value={updateArtistModal.profileUrl || ""}
-          />
-          <input
-            type="hidden"
-            name="profileKeyUrl"
-            value={updateArtistModal.profileKeyUrl || ""}
           />
 
           <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -219,7 +224,7 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
             Cancel
           </button>
         </form>
-      </UserData>
+      </DataModal>
     </div>
   );
 };

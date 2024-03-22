@@ -1,17 +1,21 @@
-// Mark this file to use client-side rendering capabilities
 "use client";
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import ShowArtist from "@/components/showArtist";
+import ShowArtist from "@/components/artist/showArtist";
+import AddNovel from "@/components/novel/addNovel";
 import { logout } from "@/actions/auth";
+import ListNovels from "@/components/artistWorks/listNovels";
 
 function Main() {
   const { data: session, status } = useSession();
-  const [data, setData] = useState(null);
+  //const [data, setData] = useState(null);
+
+  const [artistData, setArtistData] = useState(null);
+  const [novelData, setNovelData] = useState(null);
 
   useEffect(() => {
-    async function fetchData() {
+    const fetchArtistData = async () => {
       if (session?.user?.ID) {
         try {
           const res = await fetch(
@@ -20,21 +24,35 @@ function Main() {
               cache: "no-cache",
             }
           );
-
           if (!res.ok) {
-            throw new Error("Network response was not ok");
+            throw new Error("Failed to fetch artist data");
           }
-
           const jsonData = await res.json();
-          setData(jsonData);
+          setArtistData(jsonData);
         } catch (error) {
-          console.error("Failed to fetch data:", error);
+          console.error("Failed to fetch artist data:", error);
         }
       }
-    }
+    };
 
-    fetchData();
-  }, [session?.user?.ID]);
+    const fetchNovelData = async () => {
+      try {
+        const res = await fetch(`http://localhost:3000/api/novel`, {
+          cache: "no-cache",
+        });
+        if (!res.ok) {
+          throw new Error("Failed to fetch novel data");
+        }
+        const jsonData = await res.json();
+        setNovelData(jsonData);
+      } catch (error) {
+        console.error("Failed to fetch novel data:", error);
+      }
+    };
+
+    fetchArtistData();
+    fetchNovelData();
+  }, [session?.user?.ID]); // Empty dependency array ensures this only runs once on mount
 
   if (status === "loading") {
     return <div>Loading...</div>;
@@ -44,13 +62,17 @@ function Main() {
     return <div>You need to be logged in.</div>;
   }
 
-  const artistDb = data;
-
   return (
     <>
-      {artistDb && <ShowArtist artists={artistDb} />}
-
       <div>
+        <div className="my-5 flex flex-col gap-4">
+          <AddNovel />
+          {artistData && <ShowArtist artists={artistData} />}
+        </div>
+        {novelData && (
+          <ListNovels novels={novelData} artistId={session.user.ID} />
+        )}
+
         <form action={logout}>
           <button className="flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3 disabled:bg-slate-50 disabled:text-slate-500">
             Sign Out
@@ -62,46 +84,3 @@ function Main() {
 }
 
 export default Main;
-
-/* for reference use
-import { useSession } from "next-auth/react";
-import { logout } from "@/actions/auth";
-
-export default function Dashboard() {
-  const { data: session, status } = useSession();
-
-  return (
-    
-    <div className="flex flex-col">
-      <div className="mb-4">
-        <p>Member Area</p>
-        <div>
-          Signed in as&nbsp;
-          {status === "authenticated" ? session?.user?.email : "..."}
-          <p>
-            <strong>ID:</strong> {session?.user.ID || "ID not available"}
-          </p>
-          <p>
-            <strong>Username:</strong>{" "}
-            {session?.user.username || "Username not available"}
-          </p>
-          <p>
-            <strong>Email:</strong>{" "}
-            {session?.user.email || "Email not available"}
-          </p>
-        </div>
-      </div>
-      <form action={logout}>
-        <button
-          disabled={status === "loading" ? true : false}
-          className="flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3 disabled:bg-slate-50 disabled:text-slate-500"
-        >
-          Sign Out {status === "loading" ? "..." : ""}
-        </button>
-      </form>
-    </div>
-  );
-}
-
-
-*/

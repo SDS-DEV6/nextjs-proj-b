@@ -21,9 +21,8 @@ model Admin {
 }
 
 model Artist {
-  ArtistId         String    @id @default(auto()) @map("_id") @db.ObjectId
+  artistId         String    @id @default(auto()) @map("_id") @db.ObjectId
   profileUrl       String?
-  profileKeyUrl    String?
   username         String    @unique
   aboutMe          String?
   email            String    @unique
@@ -45,38 +44,44 @@ model Artist {
 
 model Novel {
   novelId       String     @id @default(auto()) @map("_id") @db.ObjectId
-  ArtistId      String     @db.ObjectId
-  volumes       Volume[]   @relation("NovelToVolumes") // New relation 
+  artistId      String     @db.ObjectId
+  volumes       Volume[]   @relation("NovelToVolumes")
   title         String
-  genre         String
   synopsis      String
   visibility    Boolean    @default(true)
   pinyaApproved Boolean    @default(false)
   totalViews    Int        @default(0)
   totalLikes    Int        @default(0)
   likes         Like[]     @relation("NovelToLikes")
-  Artist        Artist     @relation("ArtistToNovel", fields: [ArtistId], references: [ArtistId])
-  coverPhoto    String
+  Artist        Artist     @relation("ArtistToNovel", fields: [artistId], references: [artistId])
+  thumbnailUrl  String
   bookmarkedBy  Bookmark[] @relation("NovelToBookmarks")
+  genre         String
+  createdAt     DateTime   @default(now())
 }
 
 model Volume {
-  volumeId String    @id @default(auto()) @map("_id") @db.ObjectId
-  novel    Novel     @relation("NovelToVolumes", fields: [novelId], references: [novelId]) // Relation to Novel
-  novelId  String    @db.ObjectId
-  title    String
-  chapters Chapter[] @relation("VolumeToChapters") // Relation to Chapters
+  volumeId        String    @id @default(auto()) @map("_id") @db.ObjectId
+  novel           Novel     @relation("NovelToVolumes", fields: [novelId], references: [novelId])
+  novelId         String    @db.ObjectId
+  title           String?
+  chapters        Chapter[] @relation("VolumeToChapters")
+  volumeCompleted Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  visibility      Boolean   @default(true)
+  volumeNumber    Int       @default(1)
 }
 
 model Chapter {
   chapterId     String   @id @default(auto()) @map("_id") @db.ObjectId
-  volume        Volume   @relation("VolumeToChapters", fields: [volumeId], references: [volumeId]) // Relation to Volume
+  volume        Volume   @relation("VolumeToChapters", fields: [volumeId], references: [volumeId])
   volumeId      String   @db.ObjectId
-  title         String
-  content       String
+  title         String?
+  content       String?
   pinyaApproved Boolean  @default(false)
   createdAt     DateTime @default(now())
   visibility    Boolean  @default(true)
+  chapterNumber Int      @default(1)
 }
 
 //reader

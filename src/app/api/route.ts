@@ -12,3 +12,27 @@ export const GET = async () => {
     );
   }
 };
+
+export const POST = async (request: { json: () => any }) => {
+  try {
+    const novelData = await request.json();
+    const { genre, title, synopsis, artistId, thumbnailUrl } = novelData;
+
+    const newNovel = await prisma.novel.create({
+      data: {
+        genre,
+        title,
+        synopsis,
+        artistId,
+        thumbnailUrl,
+      },
+    });
+    return NextResponse.json(newNovel);
+  } catch (err) {
+    console.error("Error creating novel:", err);
+    return NextResponse.json(
+      { message: "Error Posting Data to Database", err },
+      { status: 500 }
+    );
+  }
+};

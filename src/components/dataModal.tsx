@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 
-const UserData = ({
+const DataModal = ({
   children,
   modalOpen,
   setModalOpen,
@@ -20,4 +20,4 @@ const UserData = ({
   );
 };
 
-export default UserData;
+export default DataModal;

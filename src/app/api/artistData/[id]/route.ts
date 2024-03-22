@@ -10,7 +10,7 @@ export const GET = async (
 
     const artistData = await prisma.artist.findUnique({
       where: {
-        ArtistId: id,
+        artistId: id,
       },
     });
 
@@ -36,21 +36,14 @@ export const PATCH = async (
 ) => {
   try {
     const artistData = await request.json();
-    const {
-      firstName,
-      lastName,
-      suffix,
-      aboutMe,
-      password,
-      profileUrl,
-      profileKeyUrl,
-    } = artistData;
+    const { firstName, lastName, suffix, aboutMe, password, profileUrl } =
+      artistData;
 
     const { id } = params;
 
     const updateArtist = await prisma.artist.update({
       where: {
-        ArtistId: id,
+        artistId: id,
       },
       data: {
         firstName,
@@ -59,7 +52,6 @@ export const PATCH = async (
         aboutMe,
         password,
         profileUrl,
-        profileKeyUrl,
       },
     });
 

@@ -50,7 +50,7 @@ export const authConfig = {
         if (dbUser) {
           return {
             ...token,
-            ID: dbUser.ArtistId,
+            ID: dbUser.artistId,
             username: dbUser.username,
           };
         }
