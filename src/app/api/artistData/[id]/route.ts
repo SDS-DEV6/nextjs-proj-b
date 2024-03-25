@@ -36,8 +36,15 @@ export const PATCH = async (
 ) => {
   try {
     const artistData = await request.json();
-    const { firstName, lastName, suffix, aboutMe, password, profileUrl } =
-      artistData;
+    const {
+      firstName,
+      lastName,
+      suffix,
+      aboutMe,
+      password,
+      profileUrl,
+      coverProfileUrl,
+    } = artistData;
 
     const { id } = params;
 
@@ -52,6 +59,7 @@ export const PATCH = async (
         aboutMe,
         password,
         profileUrl,
+        coverProfileUrl,
       },
     });
 

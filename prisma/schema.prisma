@@ -29,6 +29,7 @@ model Admin {
 model Artist {
   artistId             String    @id @default(auto()) @map("_id") @db.ObjectId
   profileUrl           String?
+  coverProfileUrl      String?
   username             String    @unique
   aboutMe              String?
   email                String    @unique

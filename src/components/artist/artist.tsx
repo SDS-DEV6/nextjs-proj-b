@@ -4,31 +4,50 @@ import React, { useState } from "react";
 import DataModal from "../dataModal";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import bcryptjs from "bcryptjs";
 import { type PutBlobResult } from "@vercel/blob";
 import { upload } from "@vercel/blob/client";
 import { useRef } from "react";
 
 const Artists = ({ artistDb }: { artistDb: any }) => {
   const router = useRouter();
-  const inputFileRef = useRef<HTMLInputElement>(null);
-  const [blob, setBlob] = useState<PutBlobResult | null>(null);
-  const [previewUrl, setPreviewUrl] = useState(""); // State for the image preview
-  const [newPhoto, setNewPhoto] = useState(false); //vercelblolb check for if new image is chosen
+
+  const profileInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const [blob, setBlob] = useState<PutBlobResult | null>(null); //for profile image
+  const [blob2, setBlob2] = useState<PutBlobResult | null>(null); //for cover image
+
+  const [previewProfileUrl, setPreviewProfileUrl] = useState(""); // State for the profile image preview
+  const [newProfilePhoto, setNewProfilePhoto] = useState(false); //vercelblolb check for if new image is chosen
+
+  const [previewCoverProfileUrl, setPreviewCoverProfileUrl] = useState(""); // State for the cover image preview
+  const [newCoverProfilePhoto, setNewCoverProfilePhoto] = useState(false); //vercelblolb check for if new cover image is chosen
+
   const [message, setMessage] = useState("");
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    imageType: "profile" | "cover"
+  ) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
 
-      // Indicate that a new photo has been chosen
-      setNewPhoto(true);
+      // Indicate that a new photo has been chosen based on the image type
+      if (imageType === "profile") {
+        setNewProfilePhoto(true);
+      } else if (imageType === "cover") {
+        setNewCoverProfilePhoto(true);
+      }
 
       // Use FileReader to generate a preview URL
       const fileReader = new FileReader();
       fileReader.onloadend = () => {
-        // Set the result as the new preview URL
-        setPreviewUrl(fileReader.result as string);
+        // Set the result as the new preview URL based on the image type
+        if (imageType === "profile") {
+          setPreviewProfileUrl(fileReader.result as string);
+        } else if (imageType === "cover") {
+          setPreviewCoverProfileUrl(fileReader.result as string);
+        }
       };
       fileReader.readAsDataURL(file);
     }
@@ -40,15 +59,14 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
   const handleUpdateArtist = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Assuming newPhoto is a state indicating if a new photo has been selected
+    // checks if a new profile photo has been selected
     if (
-      newPhoto &&
-      inputFileRef.current &&
-      inputFileRef.current.files &&
-      inputFileRef.current.files[0]
+      newProfilePhoto &&
+      profileInputRef.current &&
+      profileInputRef.current.files &&
+      profileInputRef.current.files[0]
     ) {
       try {
-        // Assuming updateArtistModal.profileUrl holds the old profile URL
         if (updateArtistModal.profileUrl) {
           await axios.delete(
             `/api/delete?url=${encodeURIComponent(
@@ -57,7 +75,7 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
           );
         }
 
-        const file = inputFileRef.current.files[0];
+        const file = profileInputRef.current.files[0];
 
         // Use the correct upload function as demonstrated in the working test file
         const newBlob = await upload(file.name, file, {
@@ -70,7 +88,7 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
           // Update the updateArtistModal object with the new profile URL
           updateArtistModal.profileUrl = newBlob.url;
           setBlob(newBlob);
-          setNewPhoto(false);
+          setNewProfilePhoto(false);
         } else {
           throw new Error("Upload failed, newBlob is null or missing URL.");
         }
@@ -80,7 +98,47 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
       }
     }
 
-    // Now we can do the PATCH with the updated profileUrl
+    //checks if a new cover profile photo has been selected
+
+    if (
+      newCoverProfilePhoto &&
+      coverInputRef.current &&
+      coverInputRef.current.files &&
+      coverInputRef.current.files[0]
+    ) {
+      try {
+        if (updateArtistModal.coverProfileUrl) {
+          await axios.delete(
+            `/api/delete?url=${encodeURIComponent(
+              updateArtistModal.coverProfileUrl
+            )}`
+          );
+        }
+
+        const file = coverInputRef.current.files[0];
+
+        // Use the correct upload function as demonstrated in the working test file
+        const newBlob2 = await upload(file.name, file, {
+          access: "public",
+          handleUploadUrl: "/api/blobUpload",
+        });
+
+        // Check if newBlob2 is not null and has a URL
+        if (newBlob2 && newBlob2.url) {
+          // Update the updateArtistModal object with the new profile URL
+          updateArtistModal.coverProfileUrl = newBlob2.url;
+          setBlob2(newBlob2);
+          setNewCoverProfilePhoto(false);
+        } else {
+          throw new Error("Upload failed, newBlob is null or missing URL.");
+        }
+      } catch (err) {
+        console.log("Error during photo update:", err);
+        return;
+      }
+    }
+
+    // Now we can do the PATCH
     axios
       .patch(`api/artistData/${artistDb.artistId}`, updateArtistModal)
       .then((res) => {
@@ -97,7 +155,8 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
 
   const handleCancel = (e: React.FormEvent) => {
     e.preventDefault();
-    setPreviewUrl("");
+    setPreviewProfileUrl("");
+    setPreviewCoverProfileUrl("");
     setOpenArtistModalOpen(false);
   };
 
@@ -146,33 +205,67 @@ const Artists = ({ artistDb }: { artistDb: any }) => {
           onSubmit={handleUpdateArtist}
           className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
         >
-          {previewUrl ? (
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            Profile Image:
+          </label>
+          {previewProfileUrl ? (
             <div>
               <img
-                src={previewUrl}
-                alt="Selected Avatar"
+                src={previewProfileUrl}
+                alt="Selected Profile Image"
                 style={{ maxWidth: "200px" }}
               />
             </div>
           ) : (
             <img
               src={updateArtistModal.profileUrl}
-              alt="Old Image File"
+              alt="Old Profile Image File"
               style={{ maxWidth: "100%", height: "auto" }}
               key={updateArtistModal.profileUrl}
             />
           )}
           <input
-            name="file"
-            ref={inputFileRef}
+            name="profile"
+            ref={profileInputRef}
             type="file"
-            onChange={handleFileChange}
+            onChange={(e) => handleFileChange(e, "profile")}
           />
           <input
             readOnly
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             name="profileUrl"
             value={updateArtistModal.profileUrl || ""}
+          />
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            Cover Image:
+          </label>
+          {previewCoverProfileUrl ? (
+            <div>
+              <img
+                src={previewCoverProfileUrl}
+                alt="Selected Cover Image"
+                style={{ maxWidth: "200px" }}
+              />
+            </div>
+          ) : (
+            <img
+              src={updateArtistModal.coverProfileUrl}
+              alt="Old Cover Image File"
+              style={{ maxWidth: "100%", height: "auto" }}
+              key={updateArtistModal.coverProfileUrl}
+            />
+          )}
+          <input
+            name="cover"
+            ref={coverInputRef}
+            type="file"
+            onChange={(e) => handleFileChange(e, "cover")}
+          />
+          <input
+            readOnly
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            name="coverProfileUrl"
+            value={updateArtistModal.coverProfileUrl || ""}
           />
           <label className="block text-gray-700 text-sm font-bold mb-2">
             First Name:
