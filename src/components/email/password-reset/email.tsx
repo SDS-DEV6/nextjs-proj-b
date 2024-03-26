@@ -22,7 +22,7 @@ async function sentPasswordResetEmail({ to, subject, html }: EmailOptions) {
   });
 
   let info = await transporter.sendMail({
-    from: '"noreply@pinyastudio.com',
+    from: "noreply@pinyastudio.com",
     to: to,
     subject: subject,
     html: html,

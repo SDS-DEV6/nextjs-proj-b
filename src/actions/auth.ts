@@ -219,6 +219,7 @@ export const verifyEmail = (email: string) => {
     data: {
       emailVerifiedAt: new Date(),
       emailVerifyToken: null,
+      emailVerified: true,
     },
   });
 };

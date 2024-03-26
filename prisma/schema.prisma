@@ -1,6 +1,8 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+//NOTICE: ONLY ADMIN MUST PUSH TO DATABASE DO NOT PROCEED WITH IT IN THIS STUDIO FOLDER
+
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
@@ -16,38 +18,29 @@ enum BooleanStatus {
   Pending
 }
 
-model Admin {
-  adminId          String    @id @default(auto()) @map("_id") @db.ObjectId
-  username         String    @unique
-  email            String    @unique
-  password         String
-  emailVerifiedAt  DateTime?
-  emailVerifyToken String?
-  createdAt        DateTime  @default(now())
-}
-
 model Artist {
-  artistId             String    @id @default(auto()) @map("_id") @db.ObjectId
+  artistId             String        @id @default(auto()) @map("_id") @db.ObjectId
   profileUrl           String?
   coverProfileUrl      String?
-  username             String    @unique
+  username             String        @unique
   aboutMe              String?
-  email                String    @unique
+  email                String        @unique
+  emailVerified        Boolean       @default(false)
   emailVerifiedAt      DateTime?
   emailVerifyToken     String?
   password             String
   firstName            String?
   lastName             String?
   suffix               String?
-  novels               Novel[]   @relation("ArtistToNovel")
-  verifiedStatus       Boolean   @default(false)
-  totalNovelLikes      Int       @default(0) // Track cumulative likes
-  totalNovelViews      Int       @default(0) // Track cumulative views
-  registration         DateTime  @default(now())
-  lastLogin            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  role                 String    @default("artist")
-  blocked              Boolean   @default(false)
+  novels               Novel[]       @relation("ArtistToNovel")
+  verifiedStatus       BooleanStatus @default(Pending)
+  totalNovelLikes      Int           @default(0) // Track cumulative likes
+  totalNovelViews      Int           @default(0) // Track cumulative views
+  registration         DateTime      @default(now())
+  lastLogin            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  role                 String        @default("artist")
+  blocked              Boolean       @default(false)
   passwordResetToken   String?
   passwordResetExpires DateTime?
 }
@@ -66,35 +59,36 @@ model Novel {
   Artist        Artist        @relation("ArtistToNovel", fields: [artistId], references: [artistId])
   thumbnailUrl  String
   bookmarkedBy  Bookmark[]    @relation("NovelToBookmarks")
-  genre         String
+  genre         String[]
   createdAt     DateTime      @default(now())
   rejected      Boolean       @default(false)
 }
 
 model Volume {
-  volumeId        String    @id @default(auto()) @map("_id") @db.ObjectId
-  novel           Novel     @relation("NovelToVolumes", fields: [novelId], references: [novelId])
-  novelId         String    @db.ObjectId
+  volumeId        String        @id @default(auto()) @map("_id") @db.ObjectId
+  novel           Novel         @relation("NovelToVolumes", fields: [novelId], references: [novelId])
+  novelId         String        @db.ObjectId
   title           String?
-  chapters        Chapter[] @relation("VolumeToChapters")
-  volumeCompleted Boolean   @default(false)
-  createdAt       DateTime  @default(now())
-  visibility      Boolean   @default(true)
-  volumeNumber    Int       @default(1)
-  rejected        Boolean   @default(false)
+  chapters        Chapter[]     @relation("VolumeToChapters")
+  volumeCompleted Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  visibility      Boolean       @default(true)
+  volumeNumber    Int           @default(1)
+  rejected        Boolean       @default(false)
+  pinyaApproved   BooleanStatus @default(Pending)
 }
 
 model Chapter {
-  chapterId     String   @id @default(auto()) @map("_id") @db.ObjectId
-  volume        Volume   @relation("VolumeToChapters", fields: [volumeId], references: [volumeId])
-  volumeId      String   @db.ObjectId
+  chapterId     String        @id @default(auto()) @map("_id") @db.ObjectId
+  volume        Volume        @relation("VolumeToChapters", fields: [volumeId], references: [volumeId])
+  volumeId      String        @db.ObjectId
   title         String?
   content       String?
-  pinyaApproved Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  visibility    Boolean  @default(true)
-  chapterNumber Int      @default(1)
-  rejected      Boolean  @default(false)
+  pinyaApproved BooleanStatus @default(Pending)
+  createdAt     DateTime      @default(now())
+  visibility    Boolean       @default(true)
+  chapterNumber Int           @default(1)
+  rejected      Boolean       @default(false)
 }
 
 //reader
